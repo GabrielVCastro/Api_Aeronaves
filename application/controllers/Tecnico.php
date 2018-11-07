@@ -1,109 +1,41 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class Piloto extends CI_Controller {
+class Tecnico extends CI_Controller {
 
  	public function index(){
+ 		$this->load->model("Tecnico_model", "tecnico");
 
- 		//listar aeronaves
- 		$this->load->model("Piloto_model", "piloto");
-		
-		$pilotos = $this->piloto->listar()->get()->result();
- 		if (count($pilotos)>0){ 
- 			echo json_encode($pilotos);
+
+ 		if ($this->tecnico->listar()) {
+ 			$tecnicos = $this->tecnico->listar();
+ 			echo json_encode($tecnicos);
 			
 			
  		}else{
  			echo json_encode(array(
  				"success" => false,
- 				"msg" => "Não existe Piloto cadastrado"
+ 				"msg" => "Não existe tecnico cadastrado"
  			
 
 
  			));
  			exit;
  		}
-		
+ 	}
 
 
-		$this->load->view('piloto/index');
-
-	}
-
-
-	public function cadastrar(){
-	
+ 	public function cadastrar(){
 		$post = json_decode(file_get_contents('php://input'));
-
 
 		if ((!isset($post->nome)) || ($post->nome=="")) {
 			echo json_encode(array(
 				"success" => false,
-				"msg" => "nome teste"
+				"msg" => "Nome indefinido"
 			));
 			exit;
 		}
 
-		if ((!isset($post->sobre_nome)) || ($post->sobre_nome=="")) {
-			echo json_encode(array(
-				"success" => false,
-				"msg" => "nome indefinido"
-			));
-			exit;
-		}
-
-
-		if (!isset($post->cpf)) {
-			echo json_encode(array(
-				"success" => false,
-				"msg" => "cpf indefinido"
-			));
-			exit;
-		}
-
-		// Verifica se um número foi informado
-		if(empty($post->cpf)) {
-			return false;
-		}
-
-		// Elimina possivel mascara
-		$cpf_1 = preg_replace("/[^0-9]/", "", $post->cpf);
-		$cpf_2 = str_pad($cpf_1, 11, '0', STR_PAD_LEFT);
-		
-		// Verifica se o numero de digitos informados é igual a 11 
-		if (strlen($cpf_2) != 11) {
-			return false;
-		}
-		// Verifica se nenhuma das sequências invalidas abaixo 
-		// foi digitada. Caso afirmativo, retorna falso
-		else if ($cpf_2 == '00000000000' || 
-			$cpf_2 == '11111111111' || 
-			$cpf_2 == '22222222222' || 
-			$cpf_2 == '33333333333' || 
-			$cpf_2 == '44444444444' || 
-			$cpf_2 == '55555555555' || 
-			$cpf_2 == '66666666666' || 
-			$cpf_2 == '77777777777' || 
-			$cpf_2 == '88888888888' || 
-			$cpf_2 == '99999999999') {
-			return false;
-		 // Calcula os digitos verificadores para verificar se o
-		 // CPF é válido
-		 } else {   
-			
-			for ($t = 9; $t < 11; $t++) {
-				
-				for ($d = 0, $c = 0; $c < $t; $c++) {
-					$d += $cpf_2{$c} * (($t + 1) - $c);
-				}
-				$d = ((10 * $d) % 11) % 10;
-				if ($cpf_2{$c} != $d) {
-					return false;
-				}
-			}
-
-			
-		}
 
 
 		if ((!isset($post->data_nascimento)) || ($post->data_nascimento=="")) {
@@ -121,7 +53,8 @@ class Piloto extends CI_Controller {
 			));
 			exit;
 		}
-
+		
+		
 		$mes = substr($post->data_nascimento, 5,2);
 
 		$dia = substr($post->data_nascimento, 8,2);
@@ -133,7 +66,6 @@ class Piloto extends CI_Controller {
 			));
 			exit;
 		}
-
 
 
 		if ((!isset($post->sexo)) || ($post->sexo=="")) {
@@ -153,26 +85,56 @@ class Piloto extends CI_Controller {
 
 
 
-		if ((!isset($post->ultimo_exame)) || ($post->ultimo_exame=="")) {
+		if ((!isset($post->naturalidade)) || ($post->naturalidade=="")) {
 			echo json_encode(array(
 				"success" => false,
-				"msg" => "último exame indefinido"
+				"msg" => "naturalidade indefinida"
 			));
 			exit;
 		}
-		$ano = substr($post->ultimo_exame, 0,4);
+
+		if (strlen($post->naturalidade)>100) {
+			echo json_encode(array(
+				"success" => false,
+				"msg" => "naturalidade invalidada"
+			));
+			exit;
+		}
+
+
+
+		if((!isset($post->exame_medico)) || ($post->exame_medico=="")) {
+			echo json_encode(array(
+				"success" => false,
+				"msg" => "data do ultimo exame medico indefinido"
+			));
+			exit;
+		}
+		$ano = substr($post->exame_medico, 0,4);
+		$tempo_atual = strtotime(date('Y/m/d'));
+
+		$tempo = strtotime(substr($post->exame_medico, 0,10));
+		if ($tempo>$tempo_atual) {
+			echo json_encode(array(
+				"success" => false,
+				"msg" => "data do ultimo exame medico invalida"
+			));
+			exit;
+		}
 		if ($ano<1950) {
 			echo json_encode(array(
 				"success" => false,
-				"msg" => "último exame invalido"
+				"msg" => "data do ultimo exame medico invalida"
 			));
 			exit;
 		}
-		$ano = substr($post->ultimo_exame, 0,4);
-		$tempo_atual = strtotime(date('Y/m/d'));
+	
 
-		$tempo = strtotime(substr($post->ultimo_exame, 0,10));
-		if ($tempo>$tempo_atual) {
+		$mes = substr($post->exame_medico, 5,2);
+
+		$dia = substr($post->exame_medico, 8,2);
+
+		if (!checkdate($mes, $dia, $ano)) {
 			echo json_encode(array(
 				"success" => false,
 				"msg" => "data do ultimo exame medico invalida"
@@ -181,17 +143,15 @@ class Piloto extends CI_Controller {
 		}
 
 
-		$mes = substr($post->ultimo_exame, 5,2);
 
-		$dia = substr($post->ultimo_exame, 8,2);
-
-		if (!checkdate($mes, $dia, $ano)) {
+		if((!isset($post->qualificacao)) || ($post->qualificacao=="")) {
 			echo json_encode(array(
 				"success" => false,
-				"msg" => "último exame indefinido"
+				"msg" => "data do ultimo exame medico indefinido"
 			));
 			exit;
 		}
+
 
 
 		if ((!isset($post->telefone)) || ($post->telefone=="")) {
@@ -208,7 +168,6 @@ class Piloto extends CI_Controller {
 			));
 			exit;
 		}
-
 
 		if ((!isset($post->endereco)) || ($post->endereco=="")) {
 			echo json_encode(array(
@@ -239,22 +198,20 @@ class Piloto extends CI_Controller {
 		$telefone2 = str_replace("-", "", $telefone1);
 		$telefone3 = str_replace(" ", "", $telefone2);
 
-		$this->load->model("Piloto_model", "piloto");
+		$this->load->model("Tecnico_model", "tecnico");
 
-		$piloto = array(
+		$tecnico = array(
 			"nome" => $post->nome,
-			"sobre_nome" => $post->sobre_nome,
-			"cpf" => $cpf_2,
 			"data_nascimento" => $post->data_nascimento,
-			"sexo" => $post->data_nascimento,
+			"sexo" => $post->sexo,
+			"exame_medico" => $post->exame_medico,
 			"qualificacao" => $post->qualificacao,
-			"ultimo_exame" => $post->ultimo_exame,
 			"telefone" => $telefone3,
+			"endereco" => $post->endereco,
 			"status" => $post->status
-
 		);
-
-		if ($this->piloto->cadastrar($piloto)) {
+		
+		if ($this->tecnico->cadastrar($tecnico)) {
 			echo json_encode(array(
 				"success" => true,
 				"msg" => "cadastrado com sucesso"
@@ -263,94 +220,34 @@ class Piloto extends CI_Controller {
 		}else{
 			echo json_encode(array(
 				"success" => false,
-				"msg" => "Piloto já cadastrado "
+				"msg" => "Tecnico já cadastrado "
 			));
 			exit;
 		}
 
-	}
+ 	}	
 
+ 	public function editar(){
+ 		$post = json_decode(file_get_contents('php://input'));
 
-	public function editar(){
-
-		$post = json_decode(file_get_contents('php://input'));
 
 		if ((!isset($post->id)) || ($post->id=="")) {
 			echo json_encode(array(
 				"success" => false,
-				"msg" => "id invalido"
+				"msg" => "Nome indefinido"
 			));
 			exit;
 		}
+
 
 		if ((!isset($post->nome)) || ($post->nome=="")) {
 			echo json_encode(array(
 				"success" => false,
-				"msg" => "nome teste"
+				"msg" => "Nome indefinido"
 			));
 			exit;
 		}
 
-		if ((!isset($post->sobre_nome)) || ($post->sobre_nome=="")) {
-			echo json_encode(array(
-				"success" => false,
-				"msg" => "nome indefinido"
-			));
-			exit;
-		}
-
-
-		if (!isset($post->cpf)) {
-			echo json_encode(array(
-				"success" => false,
-				"msg" => "cpf indefinido"
-			));
-			exit;
-		}
-
-		// Verifica se um número foi informado
-		if(empty($post->cpf)) {
-			return false;
-		}
-
-		// Elimina possivel mascara
-		$cpf_1 = preg_replace("/[^0-9]/", "", $post->cpf);
-		$cpf_2 = str_pad($cpf_1, 11, '0', STR_PAD_LEFT);
-		
-		// Verifica se o numero de digitos informados é igual a 11 
-		if (strlen($cpf_2) != 11) {
-			return false;
-		}
-		// Verifica se nenhuma das sequências invalidas abaixo 
-		// foi digitada. Caso afirmativo, retorna falso
-		else if ($cpf_2 == '00000000000' || 
-			$cpf_2 == '11111111111' || 
-			$cpf_2 == '22222222222' || 
-			$cpf_2 == '33333333333' || 
-			$cpf_2 == '44444444444' || 
-			$cpf_2 == '55555555555' || 
-			$cpf_2 == '66666666666' || 
-			$cpf_2 == '77777777777' || 
-			$cpf_2 == '88888888888' || 
-			$cpf_2 == '99999999999') {
-			return false;
-		 // Calcula os digitos verificadores para verificar se o
-		 // CPF é válido
-		 } else {   
-			
-			for ($t = 9; $t < 11; $t++) {
-				
-				for ($d = 0, $c = 0; $c < $t; $c++) {
-					$d += $cpf_2{$c} * (($t + 1) - $c);
-				}
-				$d = ((10 * $d) % 11) % 10;
-				if ($cpf_2{$c} != $d) {
-					return false;
-				}
-			}
-
-			
-		}
 
 
 		if ((!isset($post->data_nascimento)) || ($post->data_nascimento=="")) {
@@ -368,7 +265,8 @@ class Piloto extends CI_Controller {
 			));
 			exit;
 		}
-
+		
+		
 		$mes = substr($post->data_nascimento, 5,2);
 
 		$dia = substr($post->data_nascimento, 8,2);
@@ -382,11 +280,10 @@ class Piloto extends CI_Controller {
 		}
 
 
-
 		if ((!isset($post->sexo)) || ($post->sexo=="")) {
 			echo json_encode(array(
 				"success" => false,
-				"msg" => "sexo de nascimento indefinido"
+				"msg" => "sexo indefinido"
 			));
 			exit;
 		}
@@ -400,43 +297,82 @@ class Piloto extends CI_Controller {
 
 
 
-		if ((!isset($post->ultimo_exame)) || ($post->ultimo_exame=="")) {
+		if ((!isset($post->naturalidade)) || ($post->naturalidade=="")) {
 			echo json_encode(array(
 				"success" => false,
-				"msg" => "último exame indefinido"
+				"msg" => "naturalidade indefinida"
 			));
 			exit;
 		}
-		$ano = substr($post->ultimo_exame, 0,4);
+
+		if (strlen($post->naturalidade)>100) {
+			echo json_encode(array(
+				"success" => false,
+				"msg" => "naturalidade invalidada"
+			));
+			exit;
+		}
+
+
+
+		if((!isset($post->exame_medico)) || ($post->exame_medico=="")) {
+			echo json_encode(array(
+				"success" => false,
+				"msg" => "data do ultimo exame medico indefinido"
+			));
+			exit;
+		}
+		$ano = substr($post->exame_medico, 0,4);
+		$tempo_atual = strtotime(date('Y/m/d'));
+
+		$tempo = strtotime(substr($post->exame_medico, 0,10));
+		if ($tempo>$tempo_atual) {
+			echo json_encode(array(
+				"success" => false,
+				"msg" => "data do ultimo exame medico invalida"
+			));
+			exit;
+		}
 		if ($ano<1950) {
 			echo json_encode(array(
 				"success" => false,
-				"msg" => "último exame invalido"
+				"msg" => "data do ultimo exame medico invalida"
 			));
 			exit;
 		}
+	
 
-		$mes = substr($post->ultimo_exame, 5,2);
+		$mes = substr($post->exame_medico, 5,2);
 
-		$dia = substr($post->ultimo_exame, 8,2);
+		$dia = substr($post->exame_medico, 8,2);
 
 		if (!checkdate($mes, $dia, $ano)) {
 			echo json_encode(array(
 				"success" => false,
-				"msg" => "último exame indefinido"
+				"msg" => "data do ultimo exame medico invalida"
 			));
 			exit;
 		}
+
+
+
+		if((!isset($post->qualificacao)) || ($post->qualificacao=="")) {
+			echo json_encode(array(
+				"success" => false,
+				"msg" => "data do ultimo exame medico indefinido"
+			));
+			exit;
+		}
+
 
 
 		if ((!isset($post->telefone)) || ($post->telefone=="")) {
 			echo json_encode(array(
 				"success" => false,
-				"msg" => "data de nascimen indefinido"
+				"msg" => "telefone indefinido"
 			));
 			exit;
 		}
-
 		if (!preg_match('#^\(\d{2}\) 9?[6789]\d{3}-\d{4}$#', $post->telefone)) {
 			echo json_encode(array(
 				"success" => false,
@@ -444,7 +380,6 @@ class Piloto extends CI_Controller {
 			));
 			exit;
 		}
-
 
 		if ((!isset($post->endereco)) || ($post->endereco=="")) {
 			echo json_encode(array(
@@ -474,45 +409,40 @@ class Piloto extends CI_Controller {
 		$telefone1 = str_replace(")", "", $telefone);
 		$telefone2 = str_replace("-", "", $telefone1);
 		$telefone3 = str_replace(" ", "", $telefone2);
+		$this->load->model("Tecnico_model", "tecnico");
 
-		$this->load->model("Piloto_model", "piloto");
-
-		$piloto = array(
+		$tecnico = array(
 			"nome" => $post->nome,
-			"sobre_nome" => $post->sobre_nome,
-			"cpf" => $cpf_2,
 			"data_nascimento" => $post->data_nascimento,
-			"sexo" => $post->data_nascimento,
+			"sexo" => $post->sexo,
+			"exame_medico" => $post->exame_medico,
 			"qualificacao" => $post->qualificacao,
-			"ultimo_exame" => $post->ultimo_exame,
 			"telefone" => $telefone3,
+			"endereco" => $post->endereco,
 			"status" => $post->status
-
 		);
 
-
 		
-		if ($this->piloto->editar($post->id, $piloto)) {
+
+
+	
+		if ($this->tecnico->editar($post->id ,$tecnico)) {
+ 			echo json_encode(array(
+ 				"success" => true,
+ 				"msg" => "Tecnico editado com sucesso"
+ 			));
+ 		}else{
 			echo json_encode(array(
-				"success" => true,
-				"msg" => "editado com sucesso"
-			));
-			exit;
-		}else{
-			echo json_encode(array(
-				"success" => false,
-				"msg" => "Erro ao tentar editar"
-			));
-			exit;
-		}
-
-
-
-	}
+ 				"success" => false,
+ 				"msg" => "ERRO AO TENTAR EDITAR"
+ 			));
+ 		}
+	 	
+	 }
 
 
 	public function ativar_desativar(){
-		$this->load->model("Piloto_model", "piloto");
+		$this->load->model("Tecnico_model", "tecnico");
 		if ((!isset($_GET['ativar_desativar'])) || ($_GET['ativar_desativar']=="")) {
 			echo json_encode(array(
 				"success" => false,
@@ -521,24 +451,22 @@ class Piloto extends CI_Controller {
 			exit;
 		}
 
-		$piloto = $this->piloto->ativar_desativar($_GET['ativar_desativar']);
-		if ($piloto[0]->status=="A") {
+		$tecnico = $this->tecnico->ativar_desativar($_GET['ativar_desativar']);
+		if ($tecnico[0]->status=="A") {
 			echo json_encode(array(
 				"success" => false,
-				"msg" => "Piloto ativado"
+				"msg" => "tecnico ativado"
 			));
 			exit;
 		}
-		if ($piloto[0]->status=="D") {
+		if ($tecnico[0]->status=="D") {
 			echo json_encode(array(
 				"success" => false,
-				"msg" => "Piloto desativado"
+				"msg" => "tecnico desativado"
 			));
 			exit;
 		}
 
 	}
 
-
-
-}	
+} 		

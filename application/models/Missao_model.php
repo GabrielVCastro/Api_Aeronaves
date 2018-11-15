@@ -123,7 +123,7 @@ class Missao_model extends CI_Model {
 	public function excluir($id){
 	if($this->db->select("*")->from("missao")->where("id", $id)->get()->num_rows()==0){
 			return false;
-		}
+	}
 		$this->db->where("id", $id);
 		return $this->db->delete("missao");
 

@@ -3,7 +3,7 @@
 class Manutencao_model extends CI_Model {
 
 	public function listar(){  
-		$this->db->select("manutencao.*, tecnico.*, aeronave.prefixo");
+		$this->db->select("manutencao.id, manutencao.* , tecnico.nome, aeronave.prefixo");
     	$this->db->join("tecnico", "manutencao.id_tecnico = tecnico.id");
    		$this->db->join("aeronave", "manutencao.id_aeronave = aeronave.id");
   		return $this->db->get("manutencao")->result();
@@ -11,6 +11,7 @@ class Manutencao_model extends CI_Model {
 	}
 
 	public function cadastrar($manutencao){
+		
 		return $this->db->insert("manutencao", $manutencao);
 	}
 

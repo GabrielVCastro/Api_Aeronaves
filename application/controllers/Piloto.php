@@ -125,11 +125,10 @@ class Piloto extends CI_Controller {
 		$mes = substr($post->data_nascimento, 5,2);
 
 		$dia = substr($post->data_nascimento, 8,2);
-
 		if (!checkdate($mes, $dia, $ano)) {
 			echo json_encode(array(
 				"success" => false,
-				"msg" => "data de nascimento indefinido"
+				"msg" => "data indefinida"
 			));
 			exit;
 		}
@@ -169,9 +168,9 @@ class Piloto extends CI_Controller {
 			exit;
 		}
 		$ano = substr($post->ultimo_exame, 0,4);
-		$tempo_atual = strtotime(date('Y/m/d'));
+		$tempo_atual = strtotime(date('Y/m/d h:i:s'));
 
-		$tempo = strtotime(substr($post->ultimo_exame, 0,10));
+		$tempo = strtotime($post->ultimo_exame);
 		if ($tempo>$tempo_atual) {
 			echo json_encode(array(
 				"success" => false,
@@ -246,10 +245,11 @@ class Piloto extends CI_Controller {
 			"sobre_nome" => $post->sobre_nome,
 			"cpf" => $cpf_2,
 			"data_nascimento" => $post->data_nascimento,
-			"sexo" => $post->data_nascimento,
+			"sexo" => $post->sexo,
 			"qualificacao" => $post->qualificacao,
 			"ultimo_exame" => $post->ultimo_exame,
 			"telefone" => $telefone3,
+			"endereco" => $post->endereco,
 			"status" => $post->status
 
 		);
@@ -417,8 +417,17 @@ class Piloto extends CI_Controller {
 		}
 
 		$mes = substr($post->ultimo_exame, 5,2);
-
 		$dia = substr($post->ultimo_exame, 8,2);
+		$tempo_atual = strtotime(date('Y/m/d h:i:s'));
+		$tempo = strtotime($post->ultimo_exame);
+		
+		if ($tempo>$tempo_atual) {
+			echo json_encode(array(
+				"success" => false,
+				"msg" => "data do ultimo exame medico invalida"
+			));
+			exit;
+		}
 
 		if (!checkdate($mes, $dia, $ano)) {
 			echo json_encode(array(

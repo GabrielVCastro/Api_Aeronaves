@@ -32,4 +32,13 @@ class Login_model extends CI_Model {
 		return false;
 	}
 
+	public function fazer_logoff($id){
+			return $this->db->select("*")->from("login")->where("id", $id)->get()->result();
+	}
+
+	public function editar_token($token){
+		$this->db->where("id", $token["id"]);
+		return $this->db->update("login", $token);
+	}
+
 }

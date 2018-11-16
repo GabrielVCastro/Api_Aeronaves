@@ -140,13 +140,6 @@ class Login extends CI_Controller {
 			);
 			
 
-		}else{
-			$token = hash('sha512',hash('sha512', $dados_token[0]->nome.$dados_token[0]->email.$dados_token[0]->password.$dados_token[0]->token));
-			$login = array(
-			"token" =>$token
- 
-			);
-			
 		}
 
 		$usuario = array(
@@ -171,11 +164,38 @@ class Login extends CI_Controller {
 			exit;
 		}
 
-
-
-
-
  	}
+
+
+ 	public function fazer_logoff(){
+ 		$this->load->model("Login_model", "login");
+
+ 		$usuario = $this->login->fazer_logoff($_GET['sair']);
+ 		$novo_token = hash('sha512',hash('sha512', $usuario[0]->nome.$usuario[0]->email.$usuario[0]->password.$usuario[0]->token));
+
+ 		$token = array(
+ 			"id" => $usuario[0]->id,
+ 			"token" => $novo_token
+ 		);
+
+ 		if ($this->login->editar_token($token)) {
+			echo json_encode(array(
+				"success" => true,
+				"msg" => "editado token"
+				
+			));
+			exit;
+ 		}else{
+				echo json_encode(array(
+				"success" => false,
+				"msg" => "erro"
+				
+			));
+			exit;
+ 		}
+
+
+ 	}	
 
 
  }	
